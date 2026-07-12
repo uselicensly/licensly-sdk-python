@@ -2,11 +2,17 @@
 from __future__ import annotations
 
 import json
+import os
 import pathlib
 
 import pytest
 
-FIXTURES_DIR = pathlib.Path(__file__).parent.parent / ".contract" / "fixtures"
+FIXTURES_DIR = pathlib.Path(
+    os.environ.get(
+        "LICENSLY_CONTRACT_FIXTURES",
+        pathlib.Path(__file__).parent.parent / ".contract" / "fixtures",
+    )
+)
 
 
 def load_fixture(name: str) -> dict:

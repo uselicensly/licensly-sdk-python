@@ -8,14 +8,16 @@ import httpx
 
 from licensly.exceptions import (
     ActivationLimitError,
+    AppVersionTooOldError,
     InvalidLicenseError,
     InvalidRequestError,
     LicenslyError,
+    PlanLimitError,
     RateLimitedError,
     ServerError,
     SessionLimitError,
 )
-from licensly.models import Lease
+from licensly.models import Lease, ValidationResult
 from licensly.session import LicenslySession
 from licensly.signing import verify_envelope
 
@@ -26,6 +28,8 @@ _ERROR_MAP: dict[str, type[LicenslyError]] = {
     "invalid_license": InvalidLicenseError,
     "activation_limit": ActivationLimitError,
     "session_limit": SessionLimitError,
+    "app_version_too_old": AppVersionTooOldError,
+    "plan_limit": PlanLimitError,
     "rate_limited": RateLimitedError,
     "internal": ServerError,
 }
@@ -85,25 +89,34 @@ class Client:
         envelope = data.get("envelope", data)
         return verify_envelope(envelope, self._public_key_hex)
 
+    def _activation_from_signed(self, data: dict[str, Any]) -> Activation:
+        token = data.get("session_token")
+        if not token:
+            raise LicenslyError(
+                "signed response missing session_token", code="internal"
+            )
+        return Activation(session_token=token, lease=self._lease_from_signed(data))
+
     def activate(
         self,
         license_key: str,
         device_id: str,
         nonce: str | None = None,
+        app_version: str | None = None,
     ) -> Activation:
+        payload = {
+            "license_key": license_key,
+            "product_id": self._product_id,
+            "device_id": device_id,
+            "nonce": nonce or secrets.token_hex(16),
+        }
+        if app_version is not None:
+            payload["app_version"] = app_version
         data = self._post(
             "activate",
-            {
-                "license_key": license_key,
-                "product_id": self._product_id,
-                "device_id": device_id,
-                "nonce": nonce or secrets.token_hex(16),
-            },
+            payload,
         )
-        token = data.get("session_token")
-        if not token:
-            raise LicenslyError("activate response missing session_token", code="internal")
-        return Activation(session_token=token, lease=self._lease_from_signed(data))
+        return self._activation_from_signed(data)
 
     def heartbeat(self, session_token: str, nonce: str | None = None) -> Lease:
         return self._lease_from_signed(
@@ -117,17 +130,27 @@ class Client:
             )
         )
 
-    def validate(self, session_token: str, nonce: str | None = None) -> Lease:
-        return self._lease_from_signed(
-            self._post(
-                "validate",
-                {
-                    "session_token": session_token,
-                    "product_id": self._product_id,
-                    "nonce": nonce or secrets.token_hex(16),
-                },
-            )
-        )
+    def validate(
+        self,
+        license_key: str,
+        device_id: str,
+        nonce: str | None = None,
+        app_version: str | None = None,
+        issue_session: bool = False,
+    ) -> ValidationResult | Activation:
+        payload = {
+            "license_key": license_key,
+            "product_id": self._product_id,
+            "device_id": device_id,
+            "nonce": nonce or secrets.token_hex(16),
+            "issue_session": issue_session,
+        }
+        if app_version is not None:
+            payload["app_version"] = app_version
+        data = self._post("validate", payload)
+        if issue_session:
+            return self._activation_from_signed(data)
+        return ValidationResult.from_dict(data)
 
     def deactivate(self, session_token: str, nonce: str | None = None) -> None:
         self._post(

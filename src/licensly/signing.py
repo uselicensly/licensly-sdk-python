@@ -20,7 +20,7 @@ def _b64url_decode(s: str) -> bytes:
 
 def _build_signing_input(env: Envelope) -> bytes:
     """
-    Canonical signing input per api/signing.md:
+    Canonical signing input per api/signing.yaml contract rules:
         v1\\n{kid}\\n{nonce}\\n{issued_at}\\n{payload}
     No trailing newline.
     """
