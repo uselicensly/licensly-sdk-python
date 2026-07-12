@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional
 
 
 @dataclass(frozen=True)
@@ -28,6 +27,31 @@ class Lease:
             heartbeat_interval_seconds=int(data["heartbeat_interval_seconds"]),
             offline_grace_seconds=int(data["offline_grace_seconds"]),
             min_app_version=data.get("min_app_version", ""),
+        )
+
+
+@dataclass(frozen=True)
+class ValidationResult:
+    """Unsigned result of a sessionless license validation."""
+
+    valid: bool
+    product_id: str
+    license_id: str
+    license_status: str
+    device_id_hash: str
+    min_app_version: str
+    offline_usable: bool
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "ValidationResult":
+        return cls(
+            valid=bool(data["valid"]),
+            product_id=data["product_id"],
+            license_id=data["license_id"],
+            license_status=data["license_status"],
+            device_id_hash=data["device_id_hash"],
+            min_app_version=data["min_app_version"],
+            offline_usable=bool(data["offline_usable"]),
         )
 
 

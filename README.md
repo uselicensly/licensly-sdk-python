@@ -7,7 +7,7 @@ Requires Python 3.10+.
 ## Install
 
 ```bash
-pip install licensly
+pip install git+https://github.com/uselicensly/licensly-sdk-python.git
 ```
 
 ## Quick start
@@ -20,9 +20,17 @@ with Client(
     product_id="prd_…",
     public_key_hex="<product Ed25519 public key>",
 ) as client:
+    validation = client.validate(
+        license_key="LIC-8F2A-19C4-7B61-D0E3-55AA-91B2-C8D4-0F76",
+        device_id="installation-8f27c1a4",
+        app_version="2.3.1",
+    )
+    print(validation.license_status)  # unsigned, online-only result
+
     activation = client.activate(
-        license_key="XXXX-XXXX-XXXX-XXXX",
-        device_id="stable-device-fingerprint",  # you choose this; the SDK never collects hardware IDs
+        license_key="LIC-8F2A-19C4-7B61-D0E3-55AA-91B2-C8D4-0F76",
+        device_id="installation-8f27c1a4",  # opaque, stable ID chosen by your app
+        app_version="2.3.1",
     )
     print(activation.lease.license_status)
 
@@ -31,6 +39,10 @@ with Client(
     # … your application …
     session.stop()    # ends this client session only; device binding stays until admin reset/release
 ```
+
+Pass `issue_session=True` to `validate` when you need it to return an
+`Activation` with a verified signed lease and session token. The default
+sessionless result is unsigned and must not be trusted offline.
 
 Docs: https://licensly.dev/docs
 

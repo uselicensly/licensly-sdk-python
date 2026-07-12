@@ -26,6 +26,14 @@ class SessionLimitError(LicenslyError):
     """403: Concurrent client session cap exceeded."""
 
 
+class AppVersionTooOldError(LicenslyError):
+    """403: Client app version is below the product minimum."""
+
+
+class PlanLimitError(LicenslyError):
+    """403: Organization service-plan resource cap exceeded."""
+
+
 class RateLimitedError(LicenslyError):
     """429: IP / product / key-prefix throttle triggered."""
 
