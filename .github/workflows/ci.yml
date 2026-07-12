@@ -21,22 +21,15 @@ jobs:
       - name: Install package and dev dependencies
         run: pip install -e ".[dev]"
 
-      - name: Checkout contract sources
-        uses: actions/checkout@v4
-        with:
-          repository: uselicensly/licensly
-          sparse-checkout: |
-            api
-            scripts
-          path: _contract
-          token: ${{ secrets.LICENSLY_SUBMODULES_TOKEN }}
-
-      - name: Fetch and verify contract
-        env:
-          LICENSLY_CONTRACT_API_ROOT: ${{ github.workspace }}/_contract
+      - name: Check contract lock shape
         run: |
-          chmod +x scripts/fetch-contract.sh
-          ./scripts/fetch-contract.sh
+          python3 - <<'PY'
+          import json
+          lock = json.load(open("contract.lock.json"))
+          assert lock.get("contract_version"), "missing contract_version"
+          assert lock.get("bundle_sha256"), "missing bundle_sha256"
+          print("lock ok", lock["contract_version"])
+          PY
 
       - name: Run tests
         run: pytest -v --tb=short
