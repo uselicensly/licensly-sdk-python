@@ -10,7 +10,7 @@ import pytest
 FIXTURES_DIR = pathlib.Path(
     os.environ.get(
         "LICENSLY_CONTRACT_FIXTURES",
-        pathlib.Path(__file__).parent.parent / ".contract" / "fixtures",
+        pathlib.Path(__file__).parent / "fixtures",
     )
 )
 
@@ -19,7 +19,7 @@ def load_fixture(name: str) -> dict:
     path = FIXTURES_DIR / name
     if not path.is_file():
         raise FileNotFoundError(
-            f"missing {path}; run ./scripts/fetch-contract.sh first"
+            f"missing {path}; expected vendored signing fixtures under tests/fixtures/"
         )
     return json.loads(path.read_text())
 

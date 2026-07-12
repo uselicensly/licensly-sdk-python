@@ -50,17 +50,11 @@ Docs: https://licensly.dev/docs
 
 ```bash
 python -m pip install -e ".[dev]"
-./scripts/fetch-contract.sh
 pytest
 ```
 
 ## Contract pin
 
-This repo commits only `contract.lock.json`. Golden fixtures are fetched and verified into `.contract/`:
-
-```bash
-./scripts/fetch-contract.sh
-pytest
-```
-
-When the published API contract changes, bump `contract.lock.json` to the new `contract_version` and bundle SHA-256, then re-run fetch.
+`contract.lock.json` records which Licensly API contract this SDK targets.
+Signing golden vectors used by unit tests are vendored under `tests/fixtures/` and must
+match the pinned contract version when the lock is bumped.
