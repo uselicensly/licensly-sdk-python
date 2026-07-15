@@ -21,14 +21,14 @@ with Client(
     public_key_hex="<product Ed25519 public key>",
 ) as client:
     validation = client.validate(
-        license_key="LIC-8F2A-19C4-7B61-D0E3",
+        license_key="LSLY-8F2A-19C4-7B61-D0E3",
         device_id="installation-8f27c1a4",
         app_version="2.3.1",
     )
     print(validation.license_status)  # unsigned, online-only result
 
     activation = client.activate(
-        license_key="LIC-8F2A-19C4-7B61-D0E3",
+        license_key="LSLY-8F2A-19C4-7B61-D0E3",
         device_id="installation-8f27c1a4",  # opaque, stable ID chosen by your app
         app_version="2.3.1",
     )
